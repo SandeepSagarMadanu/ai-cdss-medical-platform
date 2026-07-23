@@ -1,3 +1,13 @@
+---
+title: AI CDSS Backend API
+emoji: 🏥
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # AI Clinical Decision Support Platform (CDSS)
 
 AI Clinical Decision Support Platform (CDSS) is a production-grade, multi-agent AI Clinical Decision Support Platform designed to assist healthcare professionals in analyzing medical images, performing literature-backed RAG search audits, generating explainable findings reports, and translating clinical insights for patients.
