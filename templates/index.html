@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Medical Agent</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f4f4f4;
+        }
+        h1, h3 {
+            color: #333;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .result-section {
+            margin-top: 30px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        #preview {
+            margin-top: 10px;
+            max-height: 200px;
+        }
+        textarea {
+            width: 100%;
+            height: 60px;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .response-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧠 AI Medical Agent</h1>
+    
+    <form id="uploadForm">
+        <label for="query">Enter your medical query:</label><br>
+        <textarea id="query" name="query" required></textarea><br><br>
+        
+        <label for="image">Upload a medical image (JPEG/PNG):</label><br>
+        <input type="file" id="image" name="image" accept="image/*" required><br>
+        <img id="preview" src="#" alt="Image preview" style="display:none;"><br>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <div class="result-section">
+        <h3>🤖 Llama-3.2-11b-vision Response</h3>
+        <div id="llama11b" class="response-box">Waiting for response...</div>
+
+        <h3>🤖 Llama-3.2-90b-vision Response</h3>
+        <div id="llama90b" class="response-box">Waiting for response...</div>
+    </div>
+
+    <script>
+        // Image preview
+        document.getElementById("image").addEventListener("change", function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const preview = document.getElementById("preview");
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Form submission logic
+        document.getElementById("uploadForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            const imageFile = document.getElementById("image").files[0];
+            const queryText = document.getElementById("query").value;
+
+            formData.append("image", imageFile);
+            formData.append("query", queryText);
+
+            fetch("/upload_and_query", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Received response:", data);
+
+                document.getElementById("llama11b").innerHTML = marked.parse(data.llama11b || "⚠️ No response from Llama-11b.");
+                document.getElementById("llama90b").innerHTML = marked.parse(data.llama90b || "⚠️ No response from Llama-90b.");
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById("llama11b").innerHTML = "❌ Error fetching Llama-11b response.";
+                document.getElementById("llama90b").innerHTML = "❌ Error fetching Llama-90b response.";
+            });
+        });
+    </script>
+</body>
+</html>

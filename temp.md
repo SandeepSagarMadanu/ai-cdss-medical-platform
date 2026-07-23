@@ -1,0 +1,10 @@
+INFO:__main__:Processed response from llama11b API : The encoders in the provided image are comprised of the following components:
+
+1. **Multi-Head Attention**: This module allows the model to attend to different parts of the input sequence simultaneously and weigh their importance. 
+2. **Add & Norm**: This is a residual connection followed by layer normalization, which helps to stabilize the training process and improve the model's performance.
+3. **Feed Forward**: This is a fully connected feed-forward network that transforms the output from the previous layer.
+
+These components are repeated N times, where N is the number of encoder layers. The input to the encoder is first embedded into a vector space, and then positional encoding is added to the embedded input to preserve the sequence order information.
+ERROR:__main__:Error from llama90b API : 400 - {"error":{"message":"`max_tokens` must be less than or equal to `512`, the maximum value for `max_tokens` is less than the `context_window` for this model","type":"invalid_request_error"}}
+
+{'llama11b': "The encoders in the provided image are comprised of the following components:\n\n1. **Multi-Head Attention**: This module allows the model to attend to different parts of the input sequence simultaneously and weigh their importance. \n2. **Add & Norm**: This is a residual connection followed by layer normalization, which helps to stabilize the training process and improve the model's performance. \n3. **Feed Forward**: This is a fully connected feed-forward network that transforms the output from the previous layer.\n\nThese components are repeated N times, where N is the number of encoder layers. The input to the encoder is first embedded into a vector space, and then positional encoding is added to the embedded input to preserve the sequence order information.", 'llama90b': 'Error from llama90b API : 400'}
