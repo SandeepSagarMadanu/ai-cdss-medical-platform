@@ -1,5 +1,8 @@
 FROM python:3.11-slim
 
+# Create user 1000 for Hugging Face Spaces runtime requirements
+RUN useradd -m -u 1000 user
+
 WORKDIR /workspace
 
 # Install system dependencies for OpenCV and image processing
@@ -17,8 +20,10 @@ RUN pip install --no-cache-dir -r backend/requirements.txt
 COPY backend/ ./backend/
 COPY app.py .
 
-# Create uploads folder for scans
-RUN mkdir -p /workspace/uploads && chmod 777 /workspace/uploads
+# Create uploads folder and grant full permissions to user 1000
+RUN mkdir -p /workspace/uploads && chown -R user:user /workspace && chmod -R 777 /workspace
+
+USER user
 
 # Hugging Face Spaces default port is 7860
 EXPOSE 7860

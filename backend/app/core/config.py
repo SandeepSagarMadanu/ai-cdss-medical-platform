@@ -29,7 +29,7 @@ class Settings:
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{host}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     # Fallback SQLite DB
-    SQLITE_URL: str = "sqlite:///./cdss_fallback.db"
+    SQLITE_URL: str = os.getenv("SQLITE_URL", "sqlite:////tmp/cdss_fallback.db")
 
     # LLM configurations
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
