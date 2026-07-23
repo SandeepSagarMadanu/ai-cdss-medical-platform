@@ -7,14 +7,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from backend.app.main import app as fastapi_app
 
-# Create Gradio interface for Hugging Face Spaces
+# Create Gradio UI Blocks
 with gr.Blocks(title="AI CDSS Clinical API Portal") as demo:
     gr.Markdown("# 🏥 AI Clinical Decision Support System (CDSS) API Server")
     gr.Markdown("FastAPI Backend Server is **Active and Healthy**.")
-    gr.Markdown("Swagger API Documentation: [/docs](/docs)")
+    gr.Markdown("Interactive Swagger API Docs: [/docs](/docs)")
 
-# Attach FastAPI routes directly into Gradio's built-in FastAPI application
-demo.app.include_router(fastapi_app.router)
+# Mount Gradio under /gradio subpath so FastAPI retains primary root routes & /docs
+app = gr.mount_gradio_app(fastapi_app, demo, path="/gradio")
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=7860)
