@@ -65,6 +65,11 @@ async def health_check():
         "database": "connected" if engine else "error"
     }
 
+@app.get("/internal/config", tags=["System Health"])
+@app.get("/config", tags=["System Health"])
+async def hf_internal_config():
+    return {"status": "ok", "service": settings.PROJECT_NAME}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("backend.app.main:app", host="0.0.0.0", port=8000, reload=True)
