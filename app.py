@@ -27,6 +27,5 @@ with gr.Blocks(title="AI CDSS Clinical API Portal") as demo:
 # Mount Gradio under /gradio subpath so FastAPI retains all primary API routes (/api/v1/...), /health, and /docs
 app = gr.mount_gradio_app(fastapi_app, demo, path="/gradio")
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=7860)
+import uvicorn
+uvicorn.run(app, host="0.0.0.0", port=7860)
