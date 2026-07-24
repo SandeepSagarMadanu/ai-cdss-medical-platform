@@ -47,25 +47,25 @@ export default function MedicalViewer({ scan }: MedicalViewerProps) {
       </div>
 
       {/* Viewer Screen */}
-      <div className="bg-slate-950 p-6 flex flex-col items-center justify-center min-h-[300px] border-b border-border relative">
+      <div className="bg-slate-950 p-4 sm:p-6 flex flex-col items-center justify-center min-h-[260px] border-b border-border relative">
         {activeTab === "side-by-side" ? (
-          <div className="grid grid-cols-2 gap-4 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
             <div className="space-y-2 text-center">
               <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Modality Primary Input</span>
-              <div className="border border-border rounded-xl overflow-hidden bg-slate-900 flex justify-center items-center h-64 relative">
+              <div className="border border-border rounded-xl overflow-hidden bg-slate-900 flex justify-center items-center h-48 sm:h-64 relative">
                 <img src={originalUrl} alt="Original Scan" className="max-h-full max-w-full object-contain" />
               </div>
             </div>
             <div className="space-y-2 text-center">
               <span className="text-[10px] text-primary font-bold uppercase tracking-wider">XAI Grad-CAM Focus Mapping</span>
-              <div className="border border-border rounded-xl overflow-hidden bg-slate-900 flex justify-center items-center h-64 relative">
+              <div className="border border-border rounded-xl overflow-hidden bg-slate-900 flex justify-center items-center h-48 sm:h-64 relative">
                 <img src={gradcamUrl} alt="Grad-CAM Scan" className="max-h-full max-w-full object-contain" />
               </div>
             </div>
           </div>
         ) : (
           /* Overlay Blend Mode */
-          <div className="relative border border-border rounded-xl overflow-hidden bg-slate-900 flex justify-center items-center h-80 w-full max-w-lg">
+          <div className="relative border border-border rounded-xl overflow-hidden bg-slate-900 flex justify-center items-center h-64 sm:h-80 w-full max-w-lg">
             {/* Base Image */}
             <img 
               src={originalUrl} 

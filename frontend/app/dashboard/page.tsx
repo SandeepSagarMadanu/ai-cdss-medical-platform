@@ -202,49 +202,51 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-slate-100 font-sans">
       {/* Top navbar */}
-      <header className="px-6 py-4 flex items-center justify-between border-b border-border bg-card">
+      <header className="px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between border-b border-border bg-card sticky top-0 z-50">
         <div className="flex items-center space-x-2">
-          <div className="p-2 bg-primary rounded-lg text-white">
-            <BrainCircuit className="h-5 w-5" />
+          <div className="p-1.5 sm:p-2 bg-primary rounded-lg text-white">
+            <BrainCircuit className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
-          <span className="text-lg font-bold tracking-tight text-white">AI Clinical Decision Support Platform <span className="text-primary font-light">(CDSS)</span></span>
+          <span className="text-xs sm:text-lg font-bold tracking-tight text-white">
+            AI Clinical CDSS <span className="hidden sm:inline text-primary font-light">Platform</span>
+          </span>
         </div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4">
           {/* Clinician preview toggle */}
           {user.role !== "patient" && (
-            <div className="flex items-center bg-slate-900 border border-border p-1 rounded-xl">
+            <div className="flex items-center bg-slate-900 border border-border p-0.5 sm:p-1 rounded-xl">
               <button 
                 onClick={() => setClinicianMode(true)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${clinicianMode ? 'bg-primary text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all ${clinicianMode ? 'bg-primary text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
               >
-                Clinician Mode
+                Clinician
               </button>
               <button 
                 onClick={() => setClinicianMode(false)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${!clinicianMode ? 'bg-primary text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all ${!clinicianMode ? 'bg-primary text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
               >
-                Patient Mode
+                Patient
               </button>
             </div>
           )}
 
           {user.role === "patient" && (
-            <span className="px-3 py-1 bg-secondary bg-opacity-10 border border-secondary border-opacity-35 text-secondary text-xs rounded-full font-semibold uppercase tracking-wider">
-              Patient Portal Active
+            <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-secondary bg-opacity-10 border border-secondary border-opacity-35 text-secondary text-[10px] sm:text-xs rounded-full font-semibold uppercase tracking-wider">
+              Patient Portal
             </span>
           )}
 
-          <div className="h-6 w-[1px] bg-border"></div>
+          <div className="hidden sm:block h-6 w-[1px] bg-border"></div>
 
-          <div className="text-right">
+          <div className="hidden sm:block text-right">
             <span className="block text-xs font-bold text-white capitalize">{user.username}</span>
             <span className="block text-[10px] text-slate-400 uppercase tracking-wider">{user.role}</span>
           </div>
 
           <button 
             onClick={handleLogout}
-            className="p-2 bg-slate-900 border border-border rounded-lg text-slate-400 hover:text-red-400 hover:border-red-900 transition-all"
+            className="p-1.5 sm:p-2 bg-slate-900 border border-border rounded-lg text-slate-400 hover:text-red-400 hover:border-red-900 transition-all"
             title="Sign Out"
           >
             <LogOut className="h-4 w-4" />
@@ -256,7 +258,7 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         
         {/* Left side: Upload & Scan selection list */}
-        <aside className="w-full lg:w-96 border-r border-border bg-slate-950 flex flex-col p-6 space-y-6 shrink-0 lg:overflow-y-auto">
+        <aside className="w-full lg:w-96 border-r border-border bg-slate-950 flex flex-col p-4 sm:p-6 space-y-4 sm:space-y-6 shrink-0 lg:overflow-y-auto">
           {/* Admin Navigation */}
           {user.role === "admin" && (
             <div className="grid grid-cols-3 gap-1 bg-slate-900 border border-border p-1 rounded-xl">
@@ -519,7 +521,7 @@ export default function Dashboard() {
         </aside>
 
         {/* Right side: Medical Viewer, Report tabs, Literature search, Chat follow-up */}
-        <main className="flex-1 bg-background p-6 flex flex-col lg:overflow-y-auto space-y-6">
+        <main className="flex-1 bg-background p-4 sm:p-6 flex flex-col lg:overflow-y-auto space-y-4 sm:space-y-6">
           {!selectedScan ? (
             <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-border rounded-2xl p-12 text-center">
               <BrainCircuit className="h-12 w-12 text-slate-600 mb-4" />

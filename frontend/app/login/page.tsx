@@ -144,8 +144,8 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background justify-center items-center px-4 py-8">
-      <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+    <div className="flex min-h-screen bg-background justify-center items-center px-3 sm:px-4 py-6 sm:py-8">
+      <div className="w-full max-w-md bg-card border border-border rounded-2xl p-5 sm:p-8 shadow-2xl relative overflow-hidden">
         {/* Glow decoration */}
         <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-primary bg-opacity-10 blur-3xl pointer-events-none"></div>
         

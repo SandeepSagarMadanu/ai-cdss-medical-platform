@@ -7,18 +7,20 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-slate-100">
       {/* Header */}
-      <header className="px-6 py-4 flex items-center justify-between border-b border-border bg-card bg-opacity-70 backdrop-blur-md sticky top-0 z-50">
+      <header className="px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between border-b border-border bg-card bg-opacity-70 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center space-x-2">
-          <div className="p-2 bg-primary rounded-lg text-white">
-            <BrainCircuit className="h-6 w-6" />
+          <div className="p-1.5 sm:p-2 bg-primary rounded-lg text-white">
+            <BrainCircuit className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">AI Clinical Decision Support Platform <span className="text-primary font-light">(CDSS)</span></span>
+          <span className="text-sm sm:text-xl font-bold tracking-tight text-white">
+            AI Clinical CDSS <span className="hidden sm:inline text-primary font-light">Platform</span>
+          </span>
         </div>
-        <div className="flex items-center space-x-4">
-          <Link href="/login" className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          <Link href="/login" className="px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-slate-300 hover:text-white transition-colors">
             Sign In
           </Link>
-          <Link href="/login?mode=register" className="px-4 py-2 bg-primary hover:bg-opacity-95 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-primary/20">
+          <Link href="/login?mode=register" className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary hover:bg-opacity-95 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors shadow-lg shadow-primary/20">
             Get Started
           </Link>
         </div>
