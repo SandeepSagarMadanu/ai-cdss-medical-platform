@@ -11,9 +11,34 @@ from backend.app.routers import auth, scans, reports, literature, audit
 
 logger = logging.getLogger(__name__)
 
-# Initialize database schemas
+# Initialize database schemas & auto-seed default users
 try:
     Base.metadata.create_all(bind=engine)
+    from backend.app.core.database import SessionLocal
+    from backend.app.models.models import User
+    from backend.app.core.security import get_password_hash
+    db = SessionLocal()
+    try:
+        default_users = [
+            {"username": "admin",       "email": "admin@cdss.org",       "password": "Adm!n@CDSS#2024",      "role": "admin"},
+            {"username": "doctor",      "email": "doctor@cdss.org",      "password": "D0ct0r$CDSS#99",      "role": "doctor"},
+            {"username": "radiologist", "email": "radiologist@cdss.org", "password": "R4d!0l0g!st@CDSS#7",  "role": "radiologist"},
+            {"username": "patient",     "email": "patient@cdss.org",     "password": "P4t!ent$Care#2024",    "role": "patient"},
+        ]
+        for uinfo in default_users:
+            if not db.query(User).filter(User.username == uinfo["username"]).first():
+                db_u = User(
+                    username=uinfo["username"],
+                    email=uinfo["email"],
+                    hashed_password=get_password_hash(uinfo["password"]),
+                    role=uinfo["role"]
+                )
+                db.add(db_u)
+        db.commit()
+    except Exception as se:
+        print(f"Auto-seeding database error: {se}")
+    finally:
+        db.close()
 except Exception as e:
     print(f"Error creating database schemas: {e}")
 

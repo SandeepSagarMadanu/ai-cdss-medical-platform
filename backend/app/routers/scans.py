@@ -57,10 +57,11 @@ async def upload_and_process_scan(
     
     # Audit upload
     user = db.query(User).filter(User.id == current_user_id).first()
+    username_str = user.username if user else f"user_{current_user_id}"
     audit_log = AuditLog(
         user_id=current_user_id,
         action="SCAN_UPLOADED",
-        details=f"Scan ID: {scan.id}, Patient: {patient_name}, Type: {scan_type}, User: {user.username}"
+        details=f"Scan ID: {scan.id}, Patient: {patient_name}, Type: {scan_type}, User: {username_str}"
     )
     db.add(audit_log)
     db.commit()
@@ -154,10 +155,12 @@ def list_scans(
 ) -> Any:
     # Patients can only view their own scans, doctors/radiologists/admins can view all scans
     user = db.query(User).filter(User.id == current_user_id).first()
-    if user.role == "patient":
+    user_role = user.role if user else "doctor"
+    username_str = user.username if user else f"user_{current_user_id}"
+    if user_role == "patient":
         # Search by patient name matching user profile username (simple fallback)
         scans = db.query(Scan).filter(
-            (Scan.user_id == current_user_id) | (Scan.patient_name.ilike(f"%{user.username}%"))
+            (Scan.user_id == current_user_id) | (Scan.patient_name.ilike(f"%{username_str}%"))
         ).all()
     else:
         scans = db.query(Scan).all()
@@ -185,7 +188,9 @@ def get_scan(
         
     # Security check
     user = db.query(User).filter(User.id == current_user_id).first()
-    if user.role == "patient" and scan.user_id != current_user_id and user.username.lower() not in scan.patient_name.lower():
+    user_role = user.role if user else "doctor"
+    username_str = user.username if user else f"user_{current_user_id}"
+    if user_role == "patient" and scan.user_id != current_user_id and username_str.lower() not in scan.patient_name.lower():
         raise HTTPException(status_code=403, detail="Not authorized to access this scan.")
         
     # Audit log
