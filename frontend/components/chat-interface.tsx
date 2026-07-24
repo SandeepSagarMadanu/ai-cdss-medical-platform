@@ -4,11 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { Send, MessageSquare, Bot, User, Brain } from "lucide-react";
 
 interface ChatInterfaceProps {
-  scan: {
+  scan?: {
     id: number;
     patient_name: string;
     scan_type: string;
-  };
+  } | null;
   token: string;
 }
 
@@ -16,7 +16,9 @@ export default function ChatInterface({ scan, token }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<any[]>([
     {
       role: "assistant",
-      content: `Hello. I am the AI Clinical Decision Support Platform (CDSS) Assistant. I have analyzed the ${scan.scan_type} scan for patient ${scan.patient_name}. You can ask me follow-up questions regarding the findings, literature search, or clinical parameters.`
+      content: scan
+        ? `Hello. I am the AI Clinical Decision Support Platform (CDSS) Assistant. I have analyzed the ${scan.scan_type} scan for patient ${scan.patient_name}. You can ask me follow-up questions regarding the findings, literature search, or clinical parameters.`
+        : `Hello. I am the AI Clinical Decision Support Platform (CDSS) Assistant. Ask me any clinical consultation, diagnostic, or treatment guidelines questions.`
     }
   ]);
   const [inputValue, setInputValue] = useState("");
@@ -46,7 +48,8 @@ export default function ChatInterface({ scan, token }: ChatInterfaceProps) {
     setSending(true);
 
     try {
-      const res = await fetch(`/api/v1/scans/${scan.id}/query`, {
+      const scanId = scan?.id || 0;
+      const res = await fetch(`/api/v1/scans/${scanId}/query`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

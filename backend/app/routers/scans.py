@@ -217,18 +217,27 @@ def query_scan_followup(
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id)
 ):
-    scan = db.query(Scan).filter(Scan.id == scan_id).first()
-    if not scan:
-        raise HTTPException(status_code=404, detail="Scan not found")
-        
-    # Security check
     user = db.query(User).filter(User.id == current_user_id).first()
-    if user.role == "patient" and scan.user_id != current_user_id and user.username.lower() not in scan.patient_name.lower():
-        raise HTTPException(status_code=403, detail="Not authorized to access this scan.")
+    if not user:
+        raise HTTPException(status_code=401, detail="User authentication required")
 
-    # Get report
-    report = scan.reports[0] if scan.reports else None
-    report_text = f"Findings: {report.clinician_summary}" if report else "No prior report."
+    scan = None
+    if scan_id > 0:
+        scan = db.query(Scan).filter(Scan.id == scan_id).first()
+        
+    report_text = "General clinical consultation query (No specific scan bound)."
+    modality_text = "General Medical Consultation"
+    patient_text = user.username
+
+    if scan:
+        # Security check if patient
+        if user.role == "patient" and scan.user_id != current_user_id and user.username.lower() not in scan.patient_name.lower():
+            pass
+        else:
+            report = scan.reports[0] if scan.reports else None
+            report_text = f"Findings: {report.clinician_summary}" if report else "No prior report."
+            modality_text = scan.scan_type
+            patient_text = scan.patient_name
 
     # Format history
     history_lines = []
@@ -239,11 +248,11 @@ def query_scan_followup(
     history_text = "\n".join(history_lines)
 
     # Ask the LLM to answer the follow up question
-    prompt = f"""You are a helpful Clinical AI Assistant. A user with the role of '{user.role}' (username: {user.username}) is asking a follow-up question regarding a medical scan.
-Context of the scan:
-Modality: {scan.scan_type}
-Patient Name: {scan.patient_name}
-Scan Report Details: {report_text}
+    prompt = f"""You are a helpful Clinical AI Assistant. A user with the role of '{user.role}' (username: {user.username}) is asking a clinical question.
+Context:
+Modality/Type: {modality_text}
+Patient Name: {patient_text}
+Report Details: {report_text}
 
 Conversation History:
 {history_text}
@@ -253,7 +262,7 @@ User Question: {payload.query}
 Instructions:
 - Answer the question accurately, professionally, and style your tone to match the user's role ({user.role}). If the user is a patient, explain complex medical concepts simply. If they are a doctor or radiologist, provide clinical depth.
 - Refer back to previous messages in the conversation history if relevant.
-- Cite any relevant findings from the scan report.
+- Cite any relevant findings from the scan report if available.
 - Maintain the clinical safety disclaimer: remind the user that this is an AI assistant, not a definitive doctor's advice."""
 
     from backend.app.agents.graph import call_llm
