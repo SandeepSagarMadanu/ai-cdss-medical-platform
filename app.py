@@ -5,6 +5,15 @@ import gradio as gr
 # Add project root to sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# ZeroGPU compatibility handler for Hugging Face ZeroGPU Spaces
+try:
+    import spaces
+    @spaces.GPU
+    def zero_gpu_keepalive():
+        return "ZeroGPU Active"
+except Exception:
+    pass
+
 from backend.app.main import app as fastapi_app
 
 # Create Gradio UI Blocks
