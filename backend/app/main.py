@@ -57,6 +57,15 @@ app.include_router(reports.router, prefix=settings.API_V1_STR)
 app.include_router(literature.router, prefix=settings.API_V1_STR)
 app.include_router(audit.router, prefix=settings.API_V1_STR)
 
+@app.get("/", tags=["System Status"])
+async def root():
+    return {
+        "status": "online",
+        "service": settings.PROJECT_NAME,
+        "docs": "/docs",
+        "health": "/health"
+    }
+
 @app.get("/health", tags=["System Health"])
 async def health_check():
     return {
