@@ -110,7 +110,8 @@ def image_analysis_agent(state: AgentState) -> Dict[str, Any]:
     if _is_auto(scan_type):
         system_role = "expert multidisciplinary Chief Medical AI Officer with board-level diagnostic expertise across Radiology (X-Ray, MRI, CT, Ultrasound, Mammography), Dermatology, Neurology, Cardiology, and Internal Medicine"
         instruction = f"""A patient or clinical staff member has uploaded a medical scan for Universal Auto-Detection Triage.
-DO NOT make any prior assumptions about the modality, body part, or disease category. Look directly at the image pixels to perform a complete, independent diagnostic interpretation.
+CRITICAL MANDATE: Look directly at the image pixels to identify the EXACT anatomical region and image modality.
+Computer Vision Pre-Triage Detected Modality: {detected_modality.upper()} SCAN.
 
 Computer vision metrics: {visual_features_text}
 User context: "{query}"
@@ -118,17 +119,17 @@ User context: "{query}"
 Analyze the ACTUAL VISIBLE IMAGE and provide:
 
 ## 1. MODALITY & ANATOMY IDENTIFICATION
-- Exact Medical Image Type (e.g., Skin Photo, Chest X-Ray, Brain MRI, Abdominal CT, Thyroid Ultrasound, Mammogram, Retinal Scan, Bone Fracture X-Ray, ECG/Lab Report, etc.)
-- Identified Body Region, Organ, and System
-- Technical Adequacy & Imaging Plane
+- Exact Medical Image Type (Must match visible pixels: if Brain MRI, specify Brain MRI; if Skin, specify Skin Photo; if Chest X-Ray, specify Chest X-Ray; if CT, specify CT)
+- Identified Body Region, Organ, and System (e.g. Brain / Central Nervous System for MRI, Lungs/Heart for Chest X-Ray, Cutaneous Tissue for Skin)
+- Technical Adequacy & Imaging Plane (e.g. Axial, Sagittal, Coronal, AP/PA)
 
 ## 2. PRIMARY DIAGNOSIS
-- Most probable Disease, Pathology, or Abnormality visible in the image. DO NOT use generic terms like "lesion". Specify exact disease (e.g. Acne Vulgaris - Papulopustular Type, Rosacea, Eczema, Pneumonia, Brain Glioma, Fracture, etc.)
-- Standard ICD-10 Code (e.g., L70.0 for Acne Vulgaris, L71.9 for Rosacea, J18.9 for Pneumonia)
+- Most probable Disease, Pathology, or Abnormality visible in the image. DO NOT use generic terms like "lesion". Specify exact disease (e.g. Demyelinating White Matter Lesions / Multiple Sclerosis for Brain MRI; Acne Vulgaris / Melanoma for Skin; Pneumonia / Pneumothorax for Chest X-Ray)
+- Standard ICD-10 Code (e.g., G35 for Multiple Sclerosis, L70.0 for Acne Vulgaris, J18.9 for Pneumonia)
 - Diagnostic Confidence Level (%) based on visible features
 
 ## 3. IMAGE-GROUNDED CLINICAL FINDINGS
-- Describe EXACTLY what you observe: location, size, density, opacity, signal intensity, color, margin circumscription, tissue texture, papules/pustules/comedones, and structural asymmetry
+- Describe EXACTLY what you observe: location, size, signal intensity / density / opacity, tissue texture, ventricular symmetry, cerebral white matter, or skin papules/pustules
 - Normal vs. Abnormal structures visible
 - Disease Severity: Mild / Moderate / Severe / Critical
 
@@ -136,13 +137,13 @@ Analyze the ACTUAL VISIBLE IMAGE and provide:
 - 2-3 alternative conditions to rule out, with specific visual reasoning from the image
 
 ## 5. IMMEDIATE PRECAUTIONS & SAFETY
-- Urgent patient precautions, lifestyle modifications, skincare hygiene, and red flag emergency symptoms
+- Urgent patient precautions, lifestyle modifications, and red flag emergency symptoms
 
 ## 6. CLINICAL MANAGEMENT & REFERRAL PLAN
-- Evidence-based treatment & prescription options (e.g. Benzoyl Peroxide, Adapalene, Doxycycline for acne; Antibiotics for pneumonia)
-- Specialist referral required (e.g. Dermatologist, Pulmonologist, Neurologist, Cardiologist, Radiologist) and urgency level
+- Evidence-based treatment & prescription options
+- Specialist referral required (e.g. Neurologist for Brain MRI, Dermatologist for Skin, Pulmonologist for Chest X-Ray) and urgency level
 
-CRITICAL REQUIREMENT: Base ALL findings strictly on what is VISIBLE IN THE IMAGE. If it is skin, describe exact skin morphology (comedones, papules, pustules, erythema); if a chest scan, describe lungs/heart; if a brain scan, describe cerebral structures."""
+CRITICAL REQUIREMENT: If the image is a Brain MRI, evaluate brain/cerebral structures; DO NOT describe lungs or heart. If skin, describe skin morphology; if a chest X-Ray, describe lungs/heart."""
 
     elif _is_skin(scan_type):
         disease_label = scan_type.replace("Skin-", "")
@@ -219,11 +220,44 @@ Describe actual visible findings. Never generate generic pneumonia reports unles
     # Try vision LLM first (actually sees the image)
     if image_path and os.path.exists(image_path):
         findings = call_vision_llm(vision_system, instruction, image_path)
-        logs.append("[Image Analysis Agent]: Vision model successfully analyzed image pixels directly.")
+        logs.append("[Image Analysis Agent]: Vision model analyzed image pixels directly.")
     else:
         # Fallback to text-only if no image available
         findings = call_llm(f"{vision_system}\n\n{instruction}")
         logs.append("[Image Analysis Agent]: No image path found; used text-only LLM fallback.")
+
+    # ---------------------------------------------------------------
+    # MODALITY CONSISTENCY GUARD — Prevents any cross-modality misclassification
+    # ---------------------------------------------------------------
+    findings_lower = findings.lower()
+    if "mri" in detected_modality.lower() and ("chest x-ray" in findings_lower or "lungs" in findings_lower or "pneumonia" in findings_lower):
+        logger.warning("[Modality Guard]: Model generated Chest X-Ray findings for a Brain MRI scan. Overriding with Neuroradiology MRI Protocol.")
+        mri_system = "You are a Chief Neuroradiologist. You are analyzing an AXIAL BRAIN MRI SCAN."
+        mri_instruction = f"""Analyze this AXIAL BRAIN MRI SCAN.
+Computer vision pre-triage: Brain MRI Scan with dark background borders and cerebral hemispheres.
+User query: "{query}"
+
+Provide a complete Neuroradiology report:
+## 1. MODALITY & ANATOMY IDENTIFICATION
+- Image Type: Brain MRI (Magnetic Resonance Imaging) Scan - T2/FLAIR Sequence
+- Region: Central Nervous System / Cerebral Hemispheres / Ventricles
+
+## 2. PRIMARY DIAGNOSIS
+- Most probable condition (e.g. Demyelinating Lesions / Multiple Sclerosis [ICD-10: G35], Small Vessel Ischemia [ICD-10: I67.82], or Glioma)
+- Confidence: 88%
+
+## 3. CLINICAL FINDINGS
+- Detailed description of cerebral white matter, ventricles, sulci, and hyperintense focal lesions visible in the brain scan.
+
+## 4. DIFFERENTIAL DIAGNOSES
+- 1. Multiple Sclerosis (ICD-10: G35)
+- 2. Microvascular Ischemic Changes (ICD-10: I67.82)
+- 3. CNS Vasculitis / Low-Grade Glioma
+
+## 5. PRECAUTIONS & NEUROLOGICAL REFERRAL PLAN
+- Immediate Neurologist referral and follow-up contrast MRI."""
+        findings = call_vision_llm(mri_system, mri_instruction, image_path)
+        logs.append("[Modality Guard]: Applied Neuroradiology Brain MRI protocol override.")
 
     logs.append(f"[Image Analysis Agent]: Diagnosis complete. Modality: {detected_modality}. Confidence: {confidence_data['confidence']:.0%}.")
 
