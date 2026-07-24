@@ -11,8 +11,10 @@ try:
     @spaces.GPU
     def zero_gpu_keepalive():
         return "ZeroGPU Active"
-except Exception:
-    pass
+    # Execute during module load so ZeroGPU scheduler detects and registers function
+    zero_gpu_keepalive()
+except Exception as e:
+    print(f"ZeroGPU registration skipped: {e}")
 
 from backend.app.main import app as fastapi_app
 
