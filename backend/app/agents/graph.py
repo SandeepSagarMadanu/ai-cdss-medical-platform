@@ -725,14 +725,14 @@ def call_llm(prompt: str) -> str:
     
     last_error = None
     
-    # Try Groq models first if key exists
+    # Try Groq models first if key exists (active, non-decommissioned production models)
     if groq_key:
         models_to_try = [
             "llama-3.3-70b-versatile",
-            "llama3-70b-8192",
+            "llama-3.1-70b-versatile",
             "llama-3.1-8b-instant",
             "mixtral-8x7b-32768",
-            "llama3-8b-8192"
+            "gemma2-9b-it"
         ]
         
         url = "https://api.groq.com/openai/v1/chat/completions"
@@ -768,31 +768,33 @@ def call_llm(prompt: str) -> str:
                 
     # Try Gemini API fallback if key exists
     if gemini_key:
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-            payload = {
-                "contents": [{
-                    "parts": [{"text": prompt}]
-                }],
-                "generationConfig": {
-                    "temperature": 0.0,
-                    "maxOutputTokens": 2048
+        gemini_models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash-exp"]
+        for gmodel in gemini_models:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{gmodel}:generateContent?key={gemini_key}"
+                payload = {
+                    "contents": [{
+                        "parts": [{"text": prompt}]
+                    }],
+                    "generationConfig": {
+                        "temperature": 0.0,
+                        "maxOutputTokens": 2048
+                    }
                 }
-            }
-            logger.info("Groq failed or not configured. Attempting Gemini 1.5 Flash fallback call.")
-            response = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=12)
-            if response.status_code == 200:
-                res_data = response.json()
-                if "candidates" in res_data and len(res_data["candidates"]) > 0:
-                    parts = res_data["candidates"][0].get("content", {}).get("parts", [])
-                    if parts and "text" in parts[0]:
-                        return parts[0]["text"]
-            else:
-                logger.warning(f"Gemini API fallback failed with status {response.status_code}: {response.text}")
-                last_error = f"Gemini Status {response.status_code} - {response.text}"
-        except Exception as e:
-            logger.warning(f"Gemini API fallback raised exception: {e}")
-            last_error = f"Gemini error: {str(e)}"
+                logger.info(f"Attempting Gemini fallback call with model: {gmodel}")
+                response = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=12)
+                if response.status_code == 200:
+                    res_data = response.json()
+                    if "candidates" in res_data and len(res_data["candidates"]) > 0:
+                        parts = res_data["candidates"][0].get("content", {}).get("parts", [])
+                        if parts and "text" in parts[0]:
+                            return parts[0]["text"]
+                else:
+                    logger.warning(f"Gemini API {gmodel} failed with status {response.status_code}: {response.text}")
+                    last_error = f"Gemini Status {response.status_code} - {response.text}"
+            except Exception as e:
+                logger.warning(f"Gemini API {gmodel} exception: {e}")
+                last_error = f"Gemini error: {str(e)}"
             
     if not groq_key and not gemini_key:
         return f"[MOCK LLM RESPONSE]: Please configure GROQ_API_KEY or GEMINI_API_KEY in the .env file to view live AI predictions.\nPrompt text: {prompt[:120]}..."
