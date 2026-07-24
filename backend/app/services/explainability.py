@@ -239,9 +239,26 @@ class ExplainabilityService:
                     if area > 100 and perimeter > 0:
                         compactness = (perimeter ** 2) / (4 * np.pi * area)
                 
+                # Detect small discrete papules & pustules (pimples / comedones)
+                pustule_count = 0
+                blurred_red = cv2.GaussianBlur(red_mask, (5, 5), 0)
+                red_contours, _ = cv2.findContours(blurred_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                for cnt in red_contours:
+                    c_area = cv2.contourArea(cnt)
+                    # Small to medium circular lesion bounds (approx 15 to 3000 pixels)
+                    if 15 < c_area < 3000:
+                        c_perimeter = cv2.arcLength(cnt, True)
+                        if c_perimeter > 0:
+                            c_circ = (4 * np.pi * c_area) / (c_perimeter ** 2)
+                            if c_circ > 0.4:
+                                pustule_count += 1
+                
                 findings_summary.append(f"Dermatology image parameters: Image dimensions {w}x{h} pixels.")
-                if redness_ratio > 0.05:
+                if pustule_count > 1:
+                    findings_summary.append(f"Detected {pustule_count} discrete papulopustular lesions (inflammatory pimples/comedones) with surrounding erythematous halos.")
+                elif redness_ratio > 0.05:
                     findings_summary.append(f"Significant erythema (redness) detected covering {redness_ratio*100:.1f}% of the lesion area.")
+                
                 if darkness_ratio > 0.05:
                     findings_summary.append(f"Hyperpigmented dark melanin concentration detected ({darkness_ratio*100:.1f}% of area).")
                 
@@ -253,7 +270,9 @@ class ExplainabilityService:
                     findings_summary.append(f"Border analysis shows smooth, well-circumscribed symmetrical lesion margins (index: {compactness:.2f}).")
                 
                 if scan_type == "Auto-Detect":
-                    if redness_ratio > 0.12 and darkness_ratio < 0.05:
+                    if pustule_count >= 2 or (redness_ratio > 0.06 and pustule_count >= 1):
+                        findings_summary.append("Visual profile strongly indicates Acne Vulgaris (ICD-10: L70.0) or Papulopustular Rosacea (ICD-10: L71.9) with active inflammatory papules and pustules (pimples).")
+                    elif redness_ratio > 0.12 and darkness_ratio < 0.05:
                         findings_summary.append("Visual profile indicates an active inflammatory skin response (typical of Eczema, Rosacea, or Psoriasis).")
                     elif darkness_ratio > 0.08 and compactness > 2.0:
                         findings_summary.append("Visual profile matches atypical pigmented lesion characteristics (suspicions of Melanoma or Basal Cell Carcinoma).")

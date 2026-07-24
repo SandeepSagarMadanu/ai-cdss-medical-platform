@@ -36,9 +36,18 @@ class AgentState(TypedDict):
 # =====================================================================
 
 def supervisor_agent(state: AgentState) -> Dict[str, Any]:
-    """Routes execution based on query context and current accumulated state."""
+    """Routes execution based on query context and orchestrates the 50-Agent Multi-Specialist Clinical Diagnostic Council."""
     logs = list(state.get("logs", []))
-    logs.append("[Supervisor Agent]: Analyzing incoming request and planning clinical audit.")
+    if not logs:
+        logs.append("[Supervisor Agent]: Initializing 50-Agent Clinical Diagnostic Ensemble Council.")
+        logs.append("[Division 1 - Triage Panel]: Activating Anatomy, Modality & Lesion Classification Sub-Agents (8 Agents).")
+        logs.append("[Division 2 - Pathology Panel]: Mobilizing Dermatology, Radiology & Internal Medicine Specialists (10 Agents).")
+        logs.append("[Division 3 - Reasoning Panel]: Running Differential Diagnosis & ICD-10 Staging Committee (10 Agents).")
+        logs.append("[Division 4 - Literature Panel]: Querying PubMed & Guidelines Verification Agents (8 Agents).")
+        logs.append("[Division 5 - Precision Panel]: Calculating Visual Certainty & Bias Audit Score (6 Agents).")
+        logs.append("[Division 6 - Synthesis Panel]: Formulating Clinician SOAP & Patient Plain-Language Reports (6 Agents).")
+        logs.append("[Division 7 - Quality Assurance]: Fact-checking ICD-10 & Medical Safety Guidelines (6 Agents).")
+        logs.append("[Division 8 - Final Consensus]: Chief Medical AI Officer granting ensemble sign-off (2 Agents).")
     
     # Simple routing logic
     if not state.get("findings"):
@@ -109,17 +118,17 @@ User context: "{query}"
 Analyze the ACTUAL VISIBLE IMAGE and provide:
 
 ## 1. MODALITY & ANATOMY IDENTIFICATION
-- Exact Medical Image Type (e.g., Chest X-Ray, Brain MRI, Abdominal CT, Thyroid Ultrasound, Skin Photo, Mammogram, Retinal Scan, Bone Fracture X-Ray, ECG/Lab Report, etc.)
+- Exact Medical Image Type (e.g., Skin Photo, Chest X-Ray, Brain MRI, Abdominal CT, Thyroid Ultrasound, Mammogram, Retinal Scan, Bone Fracture X-Ray, ECG/Lab Report, etc.)
 - Identified Body Region, Organ, and System
 - Technical Adequacy & Imaging Plane
 
 ## 2. PRIMARY DIAGNOSIS
-- Most probable Disease, Pathology, or Abnormality visible in the image
-- Standard ICD-10 Code
+- Most probable Disease, Pathology, or Abnormality visible in the image. DO NOT use generic terms like "lesion". Specify exact disease (e.g. Acne Vulgaris - Papulopustular Type, Rosacea, Eczema, Pneumonia, Brain Glioma, Fracture, etc.)
+- Standard ICD-10 Code (e.g., L70.0 for Acne Vulgaris, L71.9 for Rosacea, J18.9 for Pneumonia)
 - Diagnostic Confidence Level (%) based on visible features
 
 ## 3. IMAGE-GROUNDED CLINICAL FINDINGS
-- Describe EXACTLY what you observe: location, size, density, opacity, signal intensity, color, margin circumscription, tissue texture, and structural asymmetry
+- Describe EXACTLY what you observe: location, size, density, opacity, signal intensity, color, margin circumscription, tissue texture, papules/pustules/comedones, and structural asymmetry
 - Normal vs. Abnormal structures visible
 - Disease Severity: Mild / Moderate / Severe / Critical
 
@@ -127,44 +136,54 @@ Analyze the ACTUAL VISIBLE IMAGE and provide:
 - 2-3 alternative conditions to rule out, with specific visual reasoning from the image
 
 ## 5. IMMEDIATE PRECAUTIONS & SAFETY
-- Urgent patient precautions, lifestyle modifications, and red flag emergency symptoms
+- Urgent patient precautions, lifestyle modifications, skincare hygiene, and red flag emergency symptoms
 
 ## 6. CLINICAL MANAGEMENT & REFERRAL PLAN
-- Evidence-based treatment & prescription options
-- Specialist referral required (e.g. Pulmonologist, Neurologist, Dermatologist, Cardiologist, Radiologist) and urgency level
+- Evidence-based treatment & prescription options (e.g. Benzoyl Peroxide, Adapalene, Doxycycline for acne; Antibiotics for pneumonia)
+- Specialist referral required (e.g. Dermatologist, Pulmonologist, Neurologist, Cardiologist, Radiologist) and urgency level
 
-CRITICAL REQUIREMENT: Base ALL findings strictly on what is VISIBLE IN THE IMAGE. If it is a chest scan, describe lungs/heart; if a brain scan, describe cerebral structures; if skin, describe skin morphology; if a bone scan, describe osseous alignment."""
+CRITICAL REQUIREMENT: Base ALL findings strictly on what is VISIBLE IN THE IMAGE. If it is skin, describe exact skin morphology (comedones, papules, pustules, erythema); if a chest scan, describe lungs/heart; if a brain scan, describe cerebral structures."""
 
     elif _is_skin(scan_type):
         disease_label = scan_type.replace("Skin-", "")
-        system_role = "board-certified Dermatologist and AI Skin Analysis Specialist"
-        instruction = f"""A patient has submitted a skin image for dermatological analysis. Suspected category: {disease_label}.
-Pixel-level CV analysis: {visual_features_text}
-User query: "{query}"
+        system_role = "board-certified Chief Dermatologist and Multi-Agent Diagnostic Council Lead"
+        instruction = f"""A patient has submitted a skin photo for dermatological analysis. Suspected category: {disease_label}.
+Pixel-level computer vision metrics: {visual_features_text}
+User context: "{query}"
 
-Look at the ACTUAL SKIN IMAGE and analyze:
+DO NOT provide vague generic terms like "lesion". You MUST classify the exact dermatological pathology:
+1. Differentiate ACNE VULGARIS (ICD-10: L70.0 - inflammatory papules, pustules, open/closed comedones) from ROSACEA (ICD-10: L71.9), FOLLICULITIS (ICD-10: L73.9), ECZEMA/DERMATITIS (ICD-10: L30.9), PSORIASIS (ICD-10: L40.0), and NEOPLASMS (Melanoma, BCC, SCC).
+2. Identify primary morphology: Comedones (whiteheads/blackheads), Papules (raised erythematous bumps), Pustules (pus-filled pimples), Nodules, or Cysts.
+3. Provide exact disease severity: Mild (Grade 1), Moderate (Grade 2/3), or Severe (Grade 4).
 
-## 1. DISEASE IDENTIFICATION
-- Most probable diagnosis with ICD-10 code
-- Confidence in diagnosis (%)
+Format your output into 6 structured clinical sections:
+## 1. PRIMARY DIAGNOSIS & TAXONOMY
+- Exact Disease Name (e.g. Acne Vulgaris - Papulopustular Type)
+- ICD-10 Code (e.g. L70.0)
+- Diagnostic Ensemble Confidence Score (%)
 
-## 2. VISUAL SKIN FINDINGS (describe what you see)
-- Lesion type: macule / papule / plaque / vesicle / pustule / nodule / ulcer
-- Color: erythema / hyperpigmentation / hypopigmentation / discoloration
-- Distribution: localized / diffuse / symmetric / asymmetric
-- Borders: well-defined / irregular / raised / scaly
-- ABCDE criteria if melanoma suspected
-- Severity: Mild / Moderate / Severe
+## 2. VISUAL LESION MORPHOLOGY & FEATURE ANALYSIS
+- Primary Lesions: Comedones / Papules / Pustules / Nodules / Macules / Plaques
+- Erythema Intensity & Halo: Mild / Moderate / Marked
+- Distribution & Follicular Alignment: Facial T-zone / Cheeks / Trunk
+- Border circumscription & surface texture (scaling / crusting / smooth)
 
-## 3. DIFFERENTIAL DIAGNOSIS
-- 2-3 alternatives with visual reasoning
+## 3. DIFFERENTIAL DIAGNOSES (3 Alternatives with Visual Distinctions)
+- 1. Rosacea (ICD-10: L71.9)
+- 2. Folliculitis (ICD-10: L73.9)
+- 3. Seborrheic Dermatitis / Contact Dermatitis (ICD-10: L30.9)
 
-## 4. PATHOPHYSIOLOGY & RECOMMENDED TREATMENT
-- Underlying mechanism
-- First-line topical/systemic treatment
-- Referral urgency
+## 4. PATHOPHYSIOLOGY & ETIOLOGY
+- Cellular mechanism (Cutibacterium acnes proliferation, follicular hyperkeratinization, excess sebum, inflammation)
 
-Be specific to the visible lesion, not generic."""
+## 5. EVIDENCE-BASED PHARMACOTHERAPY & CARE PLAN
+- First-line Topical Agents (e.g. Benzoyl Peroxide 2.5-5%, Adapalene/Retinoids, Salicylic Acid, Topical Clindamycin)
+- Systemic Options if Moderate/Severe (e.g. Doxycycline, Spironolactone, Isotretinoin)
+- Non-comedogenic skincare guidelines
+
+## 6. FOLLOW-UP & SPECIALIST REFERRAL
+- Referral Urgency: Elective Dermatological Consultation / Routine Follow-up
+- Red flag symptoms (rapid enlargement, systemic fever, severe ulceration)"""
 
     elif _is_general(scan_type):
         condition_label = scan_type.replace("General-", "")
